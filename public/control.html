@@ -13,13 +13,22 @@
             position: fixed;
             top: 20vh;
         }
+        
     </style>
+     <script type="importmap">
+        {
+          "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+          }
+        }
+      </script>
 </head>
 <body>
 
     <div id="slide-container"></div> <!-- Contêiner para o conteúdo do slide -->
    
-    <script>
+    <script type="module">
         const socket = io();
 
         // Função para carregar o conteúdo do slide com execução de scripts
@@ -34,17 +43,22 @@
                 
                 // Encontra e executa os scripts dentro do conteúdo HTML
                 const scripts = slideContainer.querySelectorAll("script");
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement("script");
-                    if (oldScript.src) {
-                        // Se o script tem um src, carregue-o como um script externo
-                        newScript.src = oldScript.src;
-                    } else {
-                        // Se o script é inline, copie o conteúdo
-                        newScript.textContent = oldScript.textContent;
-                    }
-                    document.body.appendChild(newScript); // Executa o script
-                });
+scripts.forEach(oldScript => {
+    const newScript = document.createElement("script");
+    newScript.type = "module"; // Define o script como módulo
+
+    if (oldScript.src) {
+        // Se o script tem um src, carregue-o como um script externo
+        newScript.src = oldScript.src;
+    } else {
+        // Se o script é inline, copie o conteúdo
+        newScript.textContent = oldScript.textContent;
+    }
+
+    // Substitui o script antigo pelo novo
+    document.body.appendChild(newScript); // Executa o script
+});
+
                 
                 document.title = `Slide ${index}`;
             } catch (error) {
