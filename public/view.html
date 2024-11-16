@@ -32,6 +32,8 @@
                 const scripts = slideContainer.querySelectorAll("script");
                 scripts.forEach(oldScript => {
                     const newScript = document.createElement("script");
+                    newScript.type = "module"; // Define o script como módulo
+
                     if (oldScript.src) {
                         // Se o script tem um src, carregue-o como um script externo
                         newScript.src = oldScript.src;
@@ -39,8 +41,11 @@
                         // Se o script é inline, copie o conteúdo
                         newScript.textContent = oldScript.textContent;
                     }
+
+                    // Substitui o script antigo pelo novo
                     document.body.appendChild(newScript); // Executa o script
                 });
+
                 
                 document.title = `Slide ${index}`;
             } catch (error) {
