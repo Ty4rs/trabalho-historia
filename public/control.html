@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Apresentação</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylon.objFileLoader.js"></script>
+    <link rel="stylesheet" href="/public/css/style.css">
+    <style>
+        button{
+            position: fixed;
+            top: 20vh;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="slide-container"></div> <!-- Contêiner para o conteúdo do slide -->
+   
+    <script>
+        const socket = io();
+
+        // Função para carregar o conteúdo do slide com execução de scripts
+        async function loadSlide(index) {
+            try {
+                const response = await fetch(`/slides/slide${index}.html`);
+                const html = await response.text();
+                
+                // Atualiza o contêiner do slide com o conteúdo HTML
+                const slideContainer = document.getElementById('slide-container');
+                slideContainer.innerHTML = html;
+                
+                // Encontra e executa os scripts dentro do conteúdo HTML
+                const scripts = slideContainer.querySelectorAll("script");
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement("script");
+                    if (oldScript.src) {
+                        // Se o script tem um src, carregue-o como um script externo
+                        newScript.src = oldScript.src;
+                    } else {
+                        // Se o script é inline, copie o conteúdo
+                        newScript.textContent = oldScript.textContent;
+                    }
+                    document.body.appendChild(newScript); // Executa o script
+                });
+                
+                document.title = `Slide ${index}`;
+            } catch (error) {
+                console.error("Erro ao carregar o slide:", error);
+            }
+        }
+
+        // Recebe o slide atual do servidor
+        socket.on('updateSlide', (slideIndex) => {
+            loadSlide(slideIndex);
+        });
+
+        // Carrega o slide inicial
+        socket.emit('getCurrentSlide', loadSlide);
+    </script>
+    <button onclick="changeSlide(-1)">Anterior</button>
+    <button onclick="changeSlide(1)">Próximo</button>
+
+    <script>
+        
+        let currentSlideIndex = 1;
+
+        // Atualiza o slide no controlador
+        function updateSlide(index) {
+            currentSlideIndex = index;
+            document.title = `Slide ${currentSlideIndex}`;
+        }
+
+        // Função para mudar o slide
+        function changeSlide(direction) {
+            let newSlideIndex = currentSlideIndex + direction;
+            if (newSlideIndex < 1) newSlideIndex = 4; // Loop para o último slide
+            if (newSlideIndex > 4) newSlideIndex = 1; // Loop para o primeiro slide
+            currentSlideIndex = newSlideIndex;
+            updateSlide(currentSlideIndex);
+            socket.emit('changeSlide', currentSlideIndex); // Envia para os outros
+        }
+
+        // Recebe o slide atual do servidor
+        socket.on('updateSlide', (slideIndex) => {
+            currentSlideIndex = slideIndex;
+            updateSlide(currentSlideIndex);
+        });
+
+         
+    </script>
+
+    
+    
+</body>
+</html>

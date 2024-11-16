@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide 1</title>
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        body { margin: 0; }
+        canvas { width: 100%; height: 100vh; display: block; }
+        #fullscreenButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    
+    <button id="fullscreenButton">Tela Cheia</button>
+    <canvas id="renderCanvas"></canvas>
+
+    <!-- Carregando PlayCanvas -->
+    <script src="https://code.playcanvas.com/playcanvas-stable.js"></script>
+    <script>
+        // Inicializa o PlayCanvas
+        const canvas = document.getElementById('renderCanvas');
+        const app = new pc.Application(canvas, { 
+            elementInput: new pc.ElementInput(canvas),
+            mouse: new pc.Mouse(canvas),
+            touch: new pc.TouchDevice(canvas),
+            keyboard: new pc.Keyboard(window)
+        });
+        app.start();
+
+        // Adiciona uma câmera à cena
+        const camera = new pc.Entity();
+        camera.addComponent('camera', {
+            fov: 45,
+            nearClip: 0.1,
+            farClip: 1000
+        });
+        camera.setLocalPosition(0, 5, 10); // Ajuste a posição da câmera
+        app.root.addChild(camera);
+
+        // Adiciona uma luz direcional à cena
+        const directionalLight = new pc.Entity();
+        directionalLight.addComponent('light', {
+            type: 'directional',
+            color: new pc.Color(1, 1, 1),
+            intensity: 1
+        });
+        directionalLight.setLocalEulerAngles(45, 0, 0); // Ajusta a direção da luz
+        app.root.addChild(directionalLight);
+
+        // Adiciona uma luz hemisférica
+        const hemiLight = new pc.Entity();
+        hemiLight.addComponent('light', {
+            type: 'hemispheric',
+            color: new pc.Color(1, 1, 1),
+            intensity: 0.7
+        });
+        app.root.addChild(hemiLight);
+
+        // Cria uma esfera para o ambiente
+        
+            const environmentSphere = new pc.Entity();
+        environmentSphere.addComponent('model', {
+            type: 'sphere'
+        });
+        environmentSphere.setLocalScale(1000, 1000, 1000);
+        environmentSphere.model.material = new pc.StandardMaterial();
+        environmentSphere.model.material.diffuseMap = new pc.Texture(app.graphicsDevice, {
+            url: '../texture/map.jpg'
+        });
+        environmentSphere.model.material.update();
+        app.root.addChild(environmentSphere);
+
+        // Carrega o modelo GLB
+        const asset = new pc.Asset('model', 'model', { url: '../model/astronalta1.glb' });
+        app.assets.add(asset);
+        app.assets.load(asset);
+        asset.ready(function (asset) {
+            console.log("Modelo carregado:", asset);
+            const entity = new pc.Entity();
+            entity.addComponent('model', {
+                type: 'asset',
+                asset: asset
+            });
+            entity.setLocalPosition(0, 0, 0); // Ajuste a posição do modelo
+            app.root.addChild(entity);
+        });
+
+        // Função para entrar em tela cheia
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                canvas.requestFullscreen().catch(err => {
+                    console.error(`Erro ao tentar entrar em tela cheia: ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Adicionar evento de clique ao botão
+        document.getElementById("fullscreenButton").addEventListener("click", toggleFullScreen);
+
+        // Atualiza a cena
+        app.on('update', function (dt) {
+            // Atualizações de lógica de jogo podem ser feitas aqui
+        });
+    </script>
+</body>
+</html>

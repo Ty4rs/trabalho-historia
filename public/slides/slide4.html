@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide 1</title>
+
+    <!-- Babylon.js e loader para arquivos OBJ -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylon.objFileLoader.js"></script>
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        #renderCanvas { width: 100%; height: 100vh; }
+        #fullscreenButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    
+    <canvas id="renderCanvas"></canvas>
+
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+        var engine = new BABYLON.Engine(canvas, true);
+
+        var createScene = function() {
+            var scene = new BABYLON.Scene(engine);
+
+            // Configuração da câmera
+            var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 3, 5, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+
+            // Configuração da iluminação
+            var light = new BABYLON.HemisphericLight("light", BABYLON.Vector3.Up(), scene);
+            light.intensity = 0.7;
+
+            // Criar uma esfera para o ambiente
+            var environmentSphere = BABYLON.MeshBuilder.CreateSphere("environmentSphere", { diameter: 1000 }, scene);
+            environmentSphere.position.y = 0; // Ajustar a posição da esfera
+            environmentSphere.material = new BABYLON.StandardMaterial("environmentMaterial", scene);
+            environmentSphere.material.backFaceCulling = false; // Inverter a culling para que a textura fique visível de dentro
+            environmentSphere.material.diffuseTexture = new BABYLON.Texture("../texture/map.jpg", scene); // Substitua pelo caminho da sua textura
+
+            // Carregar o modelo .OBJ com textura
+            BABYLON.SceneLoader.ImportMesh("", "../model/", "monkey.obj", scene, function(meshes) {
+                // Configuração da textura
+                var texture = new BABYLON.Texture("../texture/monkey.jpg", scene);
+
+                // Criar um material com reflexão ambiental (PBR)
+                var material = new BABYLON.PBRMaterial("pbr", scene);
+                material.albedoTexture = texture;
+                material.reflectivityColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+                material.microSurface = 0.8;
+
+                // Aplicar o material PBR a todos os meshes carregados
+                meshes.forEach(function(mesh) {
+                    mesh.material = material;
+                });
+            });
+
+            return scene;
+        };
+
+        var scene = createScene();
+
+        // Loop de renderização
+        engine.runRenderLoop(function() {
+            scene.render();
+        });
+
+        // Ajusta a tela ao redimensionar
+        window.addEventListener("resize", function() {
+            engine.resize();
+        });
+
+        // Função para entrar em tela cheia
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                canvas.requestFullscreen().catch(err => {
+                    console.error(`Erro ao tentar entrar em tela cheia: ${err.message} (${err.name})`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Adicionar evento de clique ao botão
+        document.getElementById("fullscreenButton").addEventListener("click", toggleFullScreen);
+    </script>
+</body>
+</html>
