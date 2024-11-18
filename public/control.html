@@ -108,8 +108,8 @@
         // Função para mudar o slide
         function changeSlide(direction) {
             let newSlideIndex = currentSlideIndex + direction;
-            if (newSlideIndex < 1) newSlideIndex = 4;
-            if (newSlideIndex > 4) newSlideIndex = 1;
+            if (newSlideIndex < 1) newSlideIndex = 6;
+            if (newSlideIndex > 6) newSlideIndex = 1;
             currentSlideIndex = newSlideIndex;
             updateSlide(currentSlideIndex);
             socket.emit('changeSlide', currentSlideIndex);
