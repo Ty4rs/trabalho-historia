@@ -21,7 +21,7 @@
         // Função para carregar o conteúdo do slide com execução de scripts
         async function loadSlide(index) {
             try {
-                const response = await fetch(`/slides/slide${index}.html`);
+                const response = await fetch(`/slidesview/slide${index}.html`);
                 const html = await response.text();
                 
                 // Atualiza o contêiner do slide com o conteúdo HTML

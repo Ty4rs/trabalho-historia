@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide 1</title>
+
+    <!-- Importando Babylon.js e o loader para arquivos OBJ -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylon.objFileLoader.js"></script>
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        /* Estilo para o canvas que renderiza a cena 3D */
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas onde o Babylon.js renderizará o modelo 3D -->
+    <canvas id="renderCanvas"></canvas>
+
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+        var engine = new BABYLON.Engine(canvas, true);
+        
+        var createScene = function() {
+            var scene = new BABYLON.Scene(engine);
+            console.log("Cena criada com sucesso.");
+
+            // Configuração da câmera
+            var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 3, 5, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+
+            // Configuração da iluminação
+            var light = new BABYLON.HemisphericLight("light", BABYLON.Vector3.Up(), scene);
+            light.intensity = 8.0;
+
+            // Carregamento do modelo .OBJ com textura
+            console.log("Iniciando o carregamento do modelo .OBJ...");
+            BABYLON.SceneLoader.ImportMesh("", "../model/", "astronalta1.glb", scene, function(meshes) {
+                if (meshes.length === 0) {
+                    console.error("Nenhum mesh foi carregado. Verifique o caminho do modelo.");
+                } else {
+                    console.log("Modelo .OBJ carregado com sucesso:", meshes);
+                }
+
+                // Configuração da textura
+                var texture = new BABYLON.Texture("../texture/monkey.jpg", scene);
+
+                // Criar um material e atribuir a textura ao modelo
+                var material = new BABYLON.StandardMaterial("material", scene);
+                material.diffuseTexture = texture;
+
+                // Aplicar o material a todos os meshes carregados
+                meshes.forEach(function(mesh) {
+                    mesh.material = material;
+                });
+
+                console.log("Modelo e textura aplicados com sucesso!");
+            }, null, function(scene, message) {
+                console.error("Erro ao carregar o modelo:", message);
+            });
+
+            return scene;
+        };
+
+        var scene = createScene();
+
+        // Loop de renderização
+        engine.runRenderLoop(function() {
+            scene.render();
+        });
+
+        // Ajusta a tela ao redimensionar
+        window.addEventListener("resize", function() {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>

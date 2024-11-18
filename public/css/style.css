@@ -2,15 +2,43 @@
     margin:0;
     padding:0;
     border: none;
+    color: white;
 }
 body{
-
-    max-width: 99vw;
-    max-height: 98vh;
+    background-color: #0A0a0a;
+    max-width: 90vw;
+    height: 93vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 h1{
-    color: white;
+    font-size: calc(5rem + 2vw);
+    font-family: "Roboto", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+}
+.desc{
+    display: block;
+    border: 1px solid white;
+    font-size: calc(1rem + 1vw);
+    font-family: "Roboto", sans-serif;
+    font-weight: 300;
+    font-style: normal;
+    padding: 1rem 20vw;
+}
+.slide-1 img{
+    width: 88vw;
+}
+.slide-1{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    
 }
 
 #fullscreenButton{

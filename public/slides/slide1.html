@@ -5,117 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        /* styles.css */
-        body{
-            display: none;
-        }
-        @media (orientation: landscape){
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #000; /* Fundo preto, semelhante ao GTA V */
-    margin: 0;
-}
-
-
-.loading-container {
-    
-    width: 200px; /* Ajuste conforme necessário */
-    height: 200px; /* Ajuste conforme necessário */
-}
-
-.loading-image {
-    
-    height: auto;
-    animation: spin 12s linear infinite; /* Ajuste a duração conforme necessário */
-    position: fixed;
-    bottom: 0vh;
-    width: 44vw;
-    height: 30vw;
-    filter: drop-shadow(5px 15px 15px #00000096);
-}
-
-.img2{
-    position: fixed;
-    top:10vh;
-    left: 10vw;
-    width: 70vw;
-    height: 30vw;
-    animation: img2s1 12s linear infinite; /* Ajuste a duração conforme necessário */
-    
-}
-.img2:nth-child(1){
-    filter: blur(20px);
-    box-shadow: 0px 0px 15vw rgba(213, 213, 213, 0.344);
-    filter: grayscale(100%);
-    top:10vh;
-    left: 10vw;
-    width: 70vw;
-    height: 32vw;
-
-}
-.glitch{
-    position: fixed;
-    top: 0vh;
-    left: 0vw;
-    width: 100vw;
-    height: 100vw;
-    animation: glitch 12s linear infinite; /* Ajuste a duração conforme necessário */
-    opacity: 0;
-}
-
-@keyframes glitch{
-    0% {
-        opacity: 1;
-        
-    }
-    10% {
-        opacity: 0;
-        
-    }
-    90% {
-        opacity: 0;
-    }
-    100% {
-       opacity: 1;
-    }
-}
-
-@keyframes img2s1{
-    0% {
-
-        transform: rotate3d(1, 1, 0, 40deg);
-        left: 15vw
-    }
-    100% {
-     
-        transform: rotate3d(1, 1, 0, 25deg);
-        left: 15vw;
-    }
-}
-
-/* Animação de rotação */
-@keyframes spin {
-    0% {
-        transform: rotateY(10deg);
-        left: 50vw;
-    }
-    100% {
-        transform: rotateY(30deg);
-        left: 55vw;
-    }
-}}
-    </style>
 </head>
 <body>
-    <div class="loading-container">
-        <img src="../img/R.jpg" alt="Loading" class="img2">
-        <img src="../img/R.jpg" alt="Loading" class="img2">
-        <div class="kin"><img src="../img/file2.png" alt="Loading" class="loading-image"></div>
-        <img src="../img/giphy.gif" alt="" class="glitch">
+    <div class="slide-1">
+        
+        <img src="../img/slide1.png" alt="">
+
     </div>
 </body>
 </html>

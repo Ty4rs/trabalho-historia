@@ -8,21 +8,25 @@
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylon.objFileLoader.js"></script>
     <link rel="stylesheet" href="/public/css/style.css">
-    <style>
-        button{
-            position: fixed;
-            top: 20vh;
-        }
-        
-    </style>
-     <script type="importmap">
+    
+    <!-- Import Map para módulos -->
+    <script type="importmap">
         {
-          "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
-          }
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+                "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+            }
         }
-      </script>
+    </script>
+
+    <style>
+
+        #slide-container {
+            width: 100%;
+            position: fixed;
+            top: 0;
+        }
+    </style>
 </head>
 <body>
 
@@ -30,83 +34,106 @@
    
     <script type="module">
         const socket = io();
-
+    
+        let currentSlideIndex = 1;
+        let threeJsInstance = null; // Variável para armazenar a instância do Three.js
+    
+        // Função para limpar o Three.js
+        function cleanupThreeJs() {
+            if (threeJsInstance) {
+                const { scene, renderer, controls } = threeJsInstance;
+    
+                if (controls) controls.dispose();
+    
+                while (scene.children.length > 0) {
+                    const object = scene.children[0];
+                    scene.remove(object);
+                    if (object.geometry) object.geometry.dispose();
+                    if (object.material) {
+                        if (Array.isArray(object.material)) {
+                            object.material.forEach(mat => mat.dispose());
+                        } else {
+                            object.material.dispose();
+                        }
+                    }
+                }
+    
+                renderer.dispose();
+                renderer.forceContextLoss();
+                renderer.domElement = null;
+    
+                document.body.removeChild(renderer.domElement);
+    
+                threeJsInstance = null;
+            }
+        }
+    
         // Função para carregar o conteúdo do slide com execução de scripts
         async function loadSlide(index) {
             try {
+                cleanupThreeJs();
+    
                 const response = await fetch(`/slides/slide${index}.html`);
                 const html = await response.text();
                 
-                // Atualiza o contêiner do slide com o conteúdo HTML
                 const slideContainer = document.getElementById('slide-container');
                 slideContainer.innerHTML = html;
                 
-                // Encontra e executa os scripts dentro do conteúdo HTML
                 const scripts = slideContainer.querySelectorAll("script");
-scripts.forEach(oldScript => {
-    const newScript = document.createElement("script");
-    newScript.type = "module"; // Define o script como módulo
-
-    if (oldScript.src) {
-        // Se o script tem um src, carregue-o como um script externo
-        newScript.src = oldScript.src;
-    } else {
-        // Se o script é inline, copie o conteúdo
-        newScript.textContent = oldScript.textContent;
-    }
-
-    // Substitui o script antigo pelo novo
-    document.body.appendChild(newScript); // Executa o script
-});
-
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement("script");
+                    newScript.type = "module";
+    
+                    if (oldScript.src) {
+                        newScript.src = oldScript.src;
+                    } else {
+                        newScript.textContent = oldScript.textContent;
+                    }
+    
+                    document.body.appendChild(newScript);
+                });
                 
                 document.title = `Slide ${index}`;
             } catch (error) {
                 console.error("Erro ao carregar o slide:", error);
             }
         }
-
-        // Recebe o slide atual do servidor
-        socket.on('updateSlide', (slideIndex) => {
-            loadSlide(slideIndex);
-        });
-
-        // Carrega o slide inicial
-        socket.emit('getCurrentSlide', loadSlide);
-    </script>
-    <button onclick="changeSlide(-1)">Anterior</button>
-    <button onclick="changeSlide(1)">Próximo</button>
-
-    <script>
-        
-        let currentSlideIndex = 1;
-
-        // Atualiza o slide no controlador
+    
+        // Função para atualizar o slide
         function updateSlide(index) {
             currentSlideIndex = index;
             document.title = `Slide ${currentSlideIndex}`;
         }
-
+    
         // Função para mudar o slide
         function changeSlide(direction) {
             let newSlideIndex = currentSlideIndex + direction;
-            if (newSlideIndex < 1) newSlideIndex = 4; // Loop para o último slide
-            if (newSlideIndex > 4) newSlideIndex = 1; // Loop para o primeiro slide
+            if (newSlideIndex < 1) newSlideIndex = 4;
+            if (newSlideIndex > 4) newSlideIndex = 1;
             currentSlideIndex = newSlideIndex;
             updateSlide(currentSlideIndex);
-            socket.emit('changeSlide', currentSlideIndex); // Envia para os outros
+            socket.emit('changeSlide', currentSlideIndex);
         }
-
+    
         // Recebe o slide atual do servidor
         socket.on('updateSlide', (slideIndex) => {
-            currentSlideIndex = slideIndex;
-            updateSlide(currentSlideIndex);
+            loadSlide(slideIndex);
         });
-
-         
+    
+        // Event listener para as teclas
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') {
+                changeSlide(-1); // Slide anterior
+            } else if (event.key === 'ArrowRight') {
+                changeSlide(1); // Próximo slide
+            }
+        });
+    
+        // Carrega o slide inicial
+        socket.emit('getCurrentSlide', loadSlide);
     </script>
+    
+    
 
-    
-    
 </body>
 </html>

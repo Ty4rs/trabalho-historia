@@ -3,85 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slide 1</title>
-
-    <!-- Importando Babylon.js e o loader para arquivos OBJ -->
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylon.objFileLoader.js"></script>
+    <title>Slide 2 - Modelo 3D</title>
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=fullscreen" />
 
     <style>
-        /* Estilo para o canvas que renderiza a cena 3D */
-        body {
-            margin: 0;
-            overflow: hidden;
+        body { margin: 0; 
+
+            display: flex;
         }
-        canvas {
-            width: 100%;
-            height: 100vh;
-            display: block;
+        canvas { 
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; 
+    height: 100vh; 
+     right: 0;
+     margin: auto;
+   
+}
+
+        #fullscreenButton {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            padding: 10px;
+            background-color: rgba(240, 248, 255, 0);
+            color: white;
+            border: none;
+            cursor: pointer;
+            
         }
     </style>
 </head>
 <body>
-    <!-- Canvas onde o Babylon.js renderizará o modelo 3D -->
-    <canvas id="renderCanvas"></canvas>
+    <button id="fullscreenButton"><span class="material-symbols-outlined">
+        fullscreen
+        </span></button>
+    <canvas id="renderCanvas"></canvas> <!-- Canvas para o Three.js -->
 
-    <script>
-        var canvas = document.getElementById("renderCanvas");
-        var engine = new BABYLON.Engine(canvas, true);
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/controls/OrbitControls.js';
+        import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
+
+        // Selecionar o canvas específico
+        const canvas = document.getElementById('renderCanvas');
+
+        // Configuração da cena, câmera e renderizador
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); // Usa o canvas existente
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.1;
+
+        // Carregar o ambiente (mapa de ambiente)
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load('../texture/map.jpg', (texture) => {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            texture.encoding = THREE.sRGBEncoding;
+            scene.environment = texture;
+            scene.background = texture;
+        });
         
-        var createScene = function() {
-            var scene = new BABYLON.Scene(engine);
-            console.log("Cena criada com sucesso.");
+        // Carregar o modelo GLTF
+        const loader = new GLTFLoader();
+        loader.load(
+            '../model/astronalta3.glb',
+            function (gltf) {
+                const model = gltf.scene;
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
 
-            // Configuração da câmera
-            var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 3, 5, BABYLON.Vector3.Zero(), scene);
-            camera.attachControl(canvas, true);
-
-            // Configuração da iluminação
-            var light = new BABYLON.HemisphericLight("light", BABYLON.Vector3.Up(), scene);
-            light.intensity = 8.0;
-
-            // Carregamento do modelo .OBJ com textura
-            console.log("Iniciando o carregamento do modelo .OBJ...");
-            BABYLON.SceneLoader.ImportMesh("", "../model/", "astronalta1.glb", scene, function(meshes) {
-                if (meshes.length === 0) {
-                    console.error("Nenhum mesh foi carregado. Verifique o caminho do modelo.");
-                } else {
-                    console.log("Modelo .OBJ carregado com sucesso:", meshes);
-                }
-
-                // Configuração da textura
-                var texture = new BABYLON.Texture("../texture/monkey.jpg", scene);
-
-                // Criar um material e atribuir a textura ao modelo
-                var material = new BABYLON.StandardMaterial("material", scene);
-                material.diffuseTexture = texture;
-
-                // Aplicar o material a todos os meshes carregados
-                meshes.forEach(function(mesh) {
-                    mesh.material = material;
+                        if (child.material && child.material.isMeshStandardMaterial) {
+                            child.material.envMap = scene.environment;
+                            child.material.needsUpdate = true;
+                        }
+                    }
                 });
+                scene.add(model);
 
-                console.log("Modelo e textura aplicados com sucesso!");
-            }, null, function(scene, message) {
-                console.error("Erro ao carregar o modelo:", message);
-            });
+                // Posicionar a câmera
+                camera.position.set(10, 10, 5);
+                camera.lookAt(0, 1, 0);
 
-            return scene;
-        };
+                // Adicionar luzes
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+                scene.add(ambientLight);
 
-        var scene = createScene();
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+                directionalLight.position.set(5, 10, 7);
+                directionalLight.castShadow = true;
+                scene.add(directionalLight);
+            },
+            undefined,
+            function (error) {
+                console.error('Erro ao carregar o modelo:', error);
+            }
+        );
 
-        // Loop de renderização
-        engine.runRenderLoop(function() {
-            scene.render();
+        // Inicializar controles orbitais
+        const controls = new OrbitControls(camera, canvas); // Usa o canvas existente
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.maxPolarAngle = Math.PI / 2;
+
+        // Adicionar funcionalidade de tela cheia
+        const fullscreenButton = document.getElementById('fullscreenButton');
+        fullscreenButton.addEventListener('click', () => {
+            if (canvas.requestFullscreen) {
+                canvas.requestFullscreen();
+            } else if (canvas.webkitRequestFullscreen) {
+                canvas.webkitRequestFullscreen(); // Suporte para Safari
+            } else if (canvas.msRequestFullscreen) {
+                canvas.msRequestFullscreen(); // Suporte para IE/Edge
+            }
         });
 
-        // Ajusta a tela ao redimensionar
-        window.addEventListener("resize", function() {
-            engine.resize();
+        // Função de animação
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Ajustar o tamanho do renderizador ao redimensionar a janela
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
