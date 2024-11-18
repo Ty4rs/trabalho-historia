@@ -3,76 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualização da Apresentação</title>
+    <title>Controle de Apresentação</title>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/node_modules/@babylonjs/core/Legacy/legacy.js"></script>
-    <script src="../node_modules/@babylonjs/loaders/OBJ/objFileLoader.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylon.objFileLoader.js"></script>
     <link rel="stylesheet" href="/public/css/style.css">
     
+    <!-- Import Map para módulos -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+                "three/examples/jsm/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <style>
+
+        #slide-container {
+            width: 100%;
+            position: fixed;
+            top: 0;
+        }
+    </style>
 </head>
 <body>
- 
-    <button id="fullscreenButton">Tela Cheia</button>
-    <div id="slide-container"></div> <!-- Contêiner para o conteúdo do slide -->
     
+    <div id="slide-container"></div> <!-- Contêiner para o conteúdo do slide -->
+
     <script>
         const socket = io();
 
-        // Função para carregar o conteúdo do slide com execução de scripts
+        // Função para carregar o conteúdo do slide e executar scripts
         async function loadSlide(index) {
             try {
-                const response = await fetch(`/slidesview/slide${index}.html`);
+                const response = await fetch(`/slides/slide${index}.html`);
                 const html = await response.text();
-                
-                // Atualiza o contêiner do slide com o conteúdo HTML
+
                 const slideContainer = document.getElementById('slide-container');
                 slideContainer.innerHTML = html;
-                
-                // Encontra e executa os scripts dentro do conteúdo HTML
+
+                // Executar os scripts embutidos no slide carregado
                 const scripts = slideContainer.querySelectorAll("script");
                 scripts.forEach(oldScript => {
                     const newScript = document.createElement("script");
-                    newScript.type = "module"; // Define o script como módulo
+                    newScript.type = "module";
 
                     if (oldScript.src) {
-                        // Se o script tem um src, carregue-o como um script externo
                         newScript.src = oldScript.src;
                     } else {
-                        // Se o script é inline, copie o conteúdo
                         newScript.textContent = oldScript.textContent;
                     }
 
-                    // Substitui o script antigo pelo novo
                     document.body.appendChild(newScript); // Executa o script
                 });
 
-                
                 document.title = `Slide ${index}`;
             } catch (error) {
                 console.error("Erro ao carregar o slide:", error);
             }
         }
 
-        // Recebe o slide atual do servidor
+        // Sincronizar com o servidor: recebe o slide atual
         socket.on('updateSlide', (slideIndex) => {
             loadSlide(slideIndex);
         });
 
-        // Carrega o slide inicial
+        // Solicitar o slide inicial
         socket.emit('getCurrentSlide', loadSlide);
 
-        // Função para entrar em tela cheia
+        // Função para alternar tela cheia
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
-                canvas.requestFullscreen().catch(err => {
-                    console.error(`Erro ao tentar entrar em tela cheia: ${err.message} (${err.name})`);
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Erro ao entrar em tela cheia: ${err.message} (${err.name})`);
                 });
             } else {
                 document.exitFullscreen();
             }
         }
 
-        // Adicionar evento de clique ao botão
+        // Adicionar evento ao botão de tela cheia
         document.getElementById("fullscreenButton").addEventListener("click", toggleFullScreen);
     </script>
 </body>
